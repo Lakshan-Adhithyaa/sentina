@@ -33,7 +33,7 @@ const targetUrl = `${BASE_URL}?component=${match}&autorun=true`;
 
 console.log(`\n  \x1b[36mSentina\x1b[0m  UI Integrity Simulator`);
 console.log(`  Component: \x1b[33m${match}\x1b[0m`);
-console.log(`  Mode:      \x1b[32mautorun\x1b[0m (generate + enable all toggles)\n`);
+console.log(`  Mode:      \x1b[32mautorun\x1b[0m (generate edge cases, toggles off by default)\n`);
 
 // ── Check if server is already running ──────────────────────────────────
 checkServer()

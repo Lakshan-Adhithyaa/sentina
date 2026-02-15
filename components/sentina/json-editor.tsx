@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { formatJson, safeJsonParse } from "@/lib/sentina-helpers"
 
 interface JsonEditorProps {
@@ -12,6 +12,7 @@ interface JsonEditorProps {
 export function JsonEditor({ value, onChange, readOnly = false }: JsonEditorProps) {
   const [textValue, setTextValue] = useState(formatJson(value))
   const [error, setError] = useState<string | null>(null)
+  const lastExternalValue = useRef(JSON.stringify(value))
 
   const handleChange = useCallback(
     (newText: string) => {
@@ -28,15 +29,16 @@ export function JsonEditor({ value, onChange, readOnly = false }: JsonEditorProp
     [onChange]
   )
 
-  // Sync external value changes
-  const formattedExternal = formatJson(value)
-  if (!error && textValue !== formattedExternal) {
-    // Only sync if user isn't actively editing with errors
-    const { data } = safeJsonParse(textValue)
-    if (JSON.stringify(data) !== JSON.stringify(value)) {
-      setTextValue(formattedExternal)
+  // Sync external value changes via useEffect instead of during render
+  useEffect(() => {
+    const serialized = JSON.stringify(value)
+    if (serialized !== lastExternalValue.current) {
+      lastExternalValue.current = serialized
+      if (!error) {
+        setTextValue(formatJson(value))
+      }
     }
-  }
+  }, [value, error])
 
   return (
     <div className="flex flex-col gap-1">
