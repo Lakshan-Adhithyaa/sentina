@@ -14,7 +14,6 @@ import { Separator } from "@/components/ui/separator"
 export function SentinaWorkspace() {
   const searchParams = useSearchParams()
   const autorunProcessed = useRef(false)
-  const [autoEnableToggles, setAutoEnableToggles] = useState(false)
 
   const [selectedName, setSelectedName] = useState<string | null>(null)
   const [editedProps, setEditedProps] = useState<Record<string, unknown>>({})
@@ -104,16 +103,12 @@ export function SentinaWorkspace() {
 
       if (data.edgeCases && Array.isArray(data.edgeCases)) {
         setEdgeCases(data.edgeCases)
-        // Set toggles: all enabled if autorun, all disabled otherwise
+        // All toggles disabled by default -- user enables manually
         const newToggles: ToggleState = {}
         for (const ec of data.edgeCases) {
-          newToggles[ec.id] = autoEnableToggles
+          newToggles[ec.id] = false
         }
         setToggleState(newToggles)
-        // Reset autoEnableToggles after applying
-        if (autoEnableToggles) {
-          setAutoEnableToggles(false)
-        }
       }
     } catch (err) {
       setApiWarning(
@@ -122,7 +117,7 @@ export function SentinaWorkspace() {
     } finally {
       setIsGenerating(false)
     }
-  }, [selectedComponent, editedProps, autoEnableToggles])
+  }, [selectedComponent, editedProps])
 
   // ── Autorun from URL params: ?component=X&autorun=true ──
   useEffect(() => {
@@ -143,13 +138,10 @@ export function SentinaWorkspace() {
     // Select the component
     handleSelectComponent(matched.name)
 
-    // If autorun is requested, trigger generation with auto-enable
+    // If autorun is requested, trigger edge case generation automatically
     if (autorunParam === "true") {
-      setAutoEnableToggles(true)
       // Small delay to ensure state is settled after component selection
       setTimeout(() => {
-        // We need to call generate with the matched component's props directly
-        // because the state update from handleSelectComponent may not have flushed yet
         setIsGenerating(true)
         setApiWarning(null)
         setApiSource(null)
@@ -170,10 +162,10 @@ export function SentinaWorkspace() {
 
             if (data.edgeCases && Array.isArray(data.edgeCases)) {
               setEdgeCases(data.edgeCases)
-              // Auto-enable ALL toggles
+              // All toggles disabled -- user enables manually
               const newToggles: ToggleState = {}
               for (const ec of data.edgeCases) {
-                newToggles[ec.id] = true
+                newToggles[ec.id] = false
               }
               setToggleState(newToggles)
             }
@@ -185,7 +177,6 @@ export function SentinaWorkspace() {
           })
           .finally(() => {
             setIsGenerating(false)
-            setAutoEnableToggles(false)
           })
       }, 100)
     }
